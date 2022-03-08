@@ -1,0 +1,42 @@
+######################################################################
+# Example test for the RBD engine.
+#
+# Runs a 512k random write test agains a RBD via librbd
+#
+# NOTE: Make sure you have either a RBD named 'fio_test' or change
+#       the rbdname parameter.
+######################################################################
+[global]
+ioengine=libaio
+#clientname=admin
+#pool=tingjie
+numjobs=2
+iodepth=64
+group_reporting
+allow_mounted_write=1
+#cpus_allowed=9
+size=32G
+invalidate=0    # mandatory
+rw=read
+bs=1m
+direct=1
+time_based
+runtime=300
+
+[file1]
+filename=/dev/rbd0
+
+[file2]
+filename=/dev/rbd1
+
+[file3]
+filename=/dev/rbd2
+
+[file4]
+filename=/dev/rbd3
+
+[job5]
+filename=/dev/rbd4
+
+[job6]
+filename=/dev/rbd5
