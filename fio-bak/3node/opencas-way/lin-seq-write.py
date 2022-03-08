@@ -24,9 +24,9 @@ node2 = subprocess.Popen("ssh root@192.168.10.3 'fio seq-write-libaio.fio' > out
 dstatout= subprocess.Popen("ssh root@192.168.10.2 'dstat -tcmynd -D total,sda,sdb,sdc,sdd,sde,sdf,sdg,nvme0n1 | tee ~/seq-write-dstat.txt 2>&1 &'", shell=True, stdout=subprocess.PIPE)
 
 time.sleep(350)
-killdstat = subprocess.Popen("ssh root@192.168.10.2 'kill -9 $(ps aux|grep dstat|grep -v grep|awk '{print $2}'|sed 1d)'", shell=True, stdout=subprocess.PIPE)
+killdstat = subprocess.Popen('''ssh root@192.168.10.2 "kill -9 $(ps aux|grep dstat|grep -v grep|awk '{print $2}'|sed 1d)" ''', shell=True, stdout=subprocess.PIPE)
 print(killdstat.stdout.read())
-killdstat1 = subprocess.Popen("ssh root@192.168.10.2 'kill -9 $(ps aux|grep dstat|grep -v grep|awk '{print $2}') '", shell=True, stdout=subprocess.PIPE)
+killdstat1 = subprocess.Popen('''ssh root@192.168.10.2 "kill -9 $(ps aux|grep dstat|grep -v grep|awk '{print $2}') " ''', shell=True, stdout=subprocess.PIPE)
 print(killdstat1.stdout.read())
 scp = subprocess.Popen("scp root@192.168.10.2:~/seq-write-dstat.txt /home/workspace/ceph/3node/test0304/out", shell=True, stdout=subprocess.PIPE)
 print(scp.stdout.read())
