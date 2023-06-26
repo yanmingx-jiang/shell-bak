@@ -1,0 +1,45 @@
+#!/bin/bash -e
+# JOBS=1 INTERVAL=50  bash sar_collect.sh 6600 1_45_l
+# JOBS=50 INTERVAL=1  bash sar_collect.sh 900 1_45_h
+rm -rf /tmp/sar_log
+RES_REPO=/tmp/sar_log
+DEL_output=1
+# RES_REPO=$1+"/sar_log"
+prefix="gatk"
+mkdir -p $RES_REPO
+start_collect() {
+    # seconds for each static
+    #prefix="RBD_IO_LOG"
+    #timestamp=$(date +'%m%d%H%M')
+    sleep 30
+    seconds_per_monitor=5
+    #time=12
+    ((count=$1/$seconds_per_monitor))
+    (sar -P ALL $seconds_per_monitor $count >${RES_REPO}/${prefix}_sar-cpu-all.log) &
+    (sar -u $seconds_per_monitor $count >${RES_REPO}/${prefix}_sar-cpu-uniq.log) &
+    (sar -n DEV $seconds_per_monitor $count >${RES_REPO}/${prefix}_sar-net.log) &
+    (sar -r $seconds_per_monitor $count >${RES_REPO}/${prefix}_sar-mem.log) &
+    (sar -m CPU -P ALL $seconds_per_monitor $count >${RES_REPO}/${prefix}_sar-cpu-frequency.log) &
+    (sar -d -p $seconds_per_monitor $count >${RES_REPO}/${prefix}_sar-io.log) &
+    sleep $1 
+}
+start_collect $1 &
+bash ctest.sh -R test_gatk_jobs_per_seconds_pkm -V 
+while true
+do
+    echo "waitting sar ending..."
+    if [ `cat /tmp/sar_log/gatk_sar-cpu-uniq.log | grep 'Average' | wc -l` -ge 1 ]; then
+        if [ `ps aux | grep 'sar' | grep -v grep | wc -l` -ge 1 ]; then
+            break
+        fi
+    else   
+        sleep 5s
+    fi
+done
+bash list-kpi.sh log* > /mnt/disk1/kpi.log 
+mkdir -p /mnt/$2 
+cd /mnt/$2 && mv /tmp/sar_log/ . && mv /mnt/disk1/*.log .
+sleep 10s
+if [ $DEL_output == 1 ]; then
+    rm -rf /mnt/disk1/*
+fi
